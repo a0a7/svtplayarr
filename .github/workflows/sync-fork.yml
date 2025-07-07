@@ -24,10 +24,10 @@ jobs:
           git remote add target https://a0a7:${{ secrets.SYNC_TOKEN }}@github.com/a0a7/publicbroadcastarr.git
           git fetch target main
 
-      - name: Rebase onto publicbroadcastarr/main
+      - name: Resolve conflicts using "theirs"
         run: |
           git checkout main
-          git rebase target/main
+          git rebase target/main || (git checkout --theirs .; git add .; git rebase --continue || true)
 
       - name: Push changes to a new branch in publicbroadcastarr
         run: |
