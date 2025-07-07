@@ -200,14 +200,35 @@ def webhook():
         if not data:
             return jsonify({'error': 'No data provided'}), 400
         
-        # Extract request details
-        media_type = data.get('media', {}).get('mediaType', 'tv')
-        title = data.get('media', {}).get('title', '')
+        # Extract request details - support both Jellyseerr and Overseerr formats
+        media_info = data.get('media', {})
+        
+        # Try different possible field names for compatibility
+        media_type = (
+            media_info.get('mediaType') or 
+            media_info.get('media_type') or 
+            data.get('notification_type', '').replace('MEDIA_PENDING', 'tv').replace('MOVIE_PENDING', 'movie') or
+            'tv'
+        )
+        
+        title = (
+            media_info.get('title') or 
+            media_info.get('name') or 
+            data.get('subject', '') or
+            ''
+        )
+        
+        # Handle different media type formats
+        if media_type.lower() in ['movie', 'movies', 'film']:
+            media_type = 'movie'
+        else:
+            media_type = 'tv'
         
         if not title:
             return jsonify({'error': 'No title provided'}), 400
         
-        logger.info(f"Processing request for: {title} ({media_type})")
+        logger.info(f"Processing webhook request for: {title} ({media_type})")
+        logger.debug(f"Webhook payload: {json.dumps(data, indent=2)}")
         
         # Search for content
         results = svtplayarr.search_content(title, media_type)
@@ -248,6 +269,35 @@ def webhook():
     except Exception as e:
         logger.error(f"Webhook error: {e}")
         return jsonify({'error': str(e)}), 500
+
+@app.route('/webhook/test', methods=['GET'])
+def webhook_test():
+    """Test endpoint showing expected webhook formats"""
+    examples = {
+        'jellyseerr_format': {
+            'media': {
+                'title': 'Example TV Show',
+                'mediaType': 'tv'
+            }
+        },
+        'overseerr_format': {
+            'media': {
+                'title': 'Example Movie',
+                'mediaType': 'movie'
+            }
+        },
+        'alternative_format': {
+            'subject': 'Example Show',
+            'notification_type': 'MEDIA_PENDING'
+        }
+    }
+    
+    return jsonify({
+        'message': 'Webhook test endpoint',
+        'webhook_url': f'{request.host_url}webhook',
+        'supported_formats': examples,
+        'test_command': 'curl -X POST http://localhost:2626/webhook -H "Content-Type: application/json" -d \'{"media":{"title":"Test Show","mediaType":"tv"}}\''
+    })
 
 @app.route('/search')
 def search():

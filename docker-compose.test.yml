@@ -15,8 +15,6 @@ services:
       - ./test-downloads/movies:/downloads/movies
       - ./test-downloads/tv:/downloads/tv
     environment:
-      - JELLYSEERR_API_KEY=test-key-replace-with-real
-      - JELLYSEERR_URL=http://jellyseerr:5055
       - SONARR_API_KEY=test-key-replace-with-real
       - SONARR_URL=http://sonarr:8989
       - RADARR_API_KEY=test-key-replace-with-real

@@ -3,6 +3,20 @@
 
 ## Overview
 
+SVTPlayArr is a service that integrates SVT Play and NRK (the respective public broadcaster streaming services for Sweden and Norway) with your *arr stack. When content is requested through Jellyseerr or Overseerr and is available on SVT Play or NRK, it will be automatically downloaded using svtplay-dl.
+
+## Features
+
+- Automatic content detection on SVT Play and NRK
+- Integration with Jellyseerr and Overseerr webhooks
+- Full svtplay-dl configuration support
+- Automatic Sonarr/Radarr notification after download
+- Daily updates of svtplay-dl from GitHub releases
+- RESTful API for manual operations
+- Configurable download settingsrr stack integration for SVT Play and NRK (Swedish and Norwegian public broadcaster streaming services)
+
+## Overview
+
 svtplayarr is a service that integrates the SVT Play and NRK (Swedish and Norwegian public broadcaster) streaming services with your Jellyfin *arr stack. When content is requested through Jellyseerr and is available on SVT Play or NRK, it will be automatically downloaded using svtplay-dl.
 
 ## Features
@@ -26,7 +40,7 @@ Chose a container registry:
 services:
   svtplayarr:
     image: username/svtplayarr:latest
-    # ... rest of configuration
+    # ... rest of config
 ```
 
 **GitHub Container Registry:**
@@ -34,7 +48,7 @@ services:
 services:
   svtplayarr:
     image: ghcr.io/username/svtplayarr:latest
-    # ... rest of configuration
+    # ... rest of config
 ```
 
 ## Quick Start
@@ -47,7 +61,6 @@ services:
 2. Edit `.env` with your *arr stack configuration:
    ```bash
    # Required
-   JELLYSEERR_API_KEY=your_api_key
    SONARR_API_KEY=your_api_key
    RADARR_API_KEY=your_api_key
    
@@ -61,7 +74,7 @@ services:
    docker-compose up -d
    ```
 
-4. Configure Jellyseerr webhook (see Webhook Setup section below)
+4. Configure Jellyseerr/Overseerr webhook (see Webhook Setup section below)
 
 ## Webhook URL Configuration
 
@@ -78,8 +91,6 @@ The webhook URL depends on your setup:
 
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `JELLYSEERR_API_KEY` | Jellyseerr API key | Required |
-| `JELLYSEERR_URL` | Jellyseerr URL | `http://jellyseerr:5055` |
 | `SONARR_API_KEY` | Sonarr API key | Required |
 | `SONARR_URL` | Sonarr URL | `http://sonarr:8989` |
 | `RADARR_API_KEY` | Radarr API key | Required |
@@ -108,7 +119,10 @@ svtplay_dl:
 Health check endpoint
 
 ### POST /webhook
-Jellyseerr webhook endpoint
+Jellyseerr/Overseerr webhook endpoint
+
+### GET /webhook/test
+Shows webhook format examples and test information
 
 ### GET /search?title=<title>&type=<tv|movie>
 Search for content manually
@@ -136,7 +150,6 @@ services:
       - /path/to/movies:/downloads/movies
       - /path/to/tv:/downloads/tv
     environment:
-      - JELLYSEERR_API_KEY=your_key
       - SONARR_API_KEY=your_key
       - RADARR_API_KEY=your_key
     networks:
@@ -147,18 +160,18 @@ networks:
     external: true
 ```
 
-## Jellyseerr Webhook Setup
+## Jellyseerr/Overseerr Webhook Setup
 
 The webhook URL depends on your Docker setup:
 
 ### Scenario 1: All services in same Docker Compose network (Recommended)
-1. Go to Jellyseerr Settings → Notifications
+1. Go to Jellyseerr/Overseerr Settings → Notifications
 2. Add a new Webhook notification
 3. Set URL to: `http://svtplayarr:2626/webhook`
 4. Enable for "Media Requested" events
 5. Set request types to both Movies and TV Shows
 
-### Scenario 2: Jellyseerr on host, svtplayarr in Docker
+### Scenario 2: Jellyseerr/Overseerr on host, SVTPlayArr in Docker
 1. Use URL: `http://localhost:2626/webhook`
 2. Ensure port 2626 is exposed (already configured in docker-compose.yml)
 
@@ -177,7 +190,7 @@ curl -X POST http://localhost:2626/webhook \
 ## Requirements
 
 - Docker and Docker Compose
-- *arr stack (Jellyseerr, Sonarr, Radarr)
+- *arr stack (Jellyseerr/Overseerr, Sonarr, Radarr)
 - Network connectivity to Swedish/Norwegian streaming services
 
 ## Troubleshooting
@@ -190,6 +203,11 @@ docker-compose logs -f svtplayarr
 ### Test Connection
 ```bash
 curl http://localhost:2626/health
+```
+
+### Test Webhook Format
+```bash
+curl http://localhost:2626/webhook/test
 ```
 
 ### Manual Search
