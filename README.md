@@ -1,4 +1,5 @@
-# svtplayarr
+# svtplayarr [![Docker Image Size (tag)](https://img.shields.io/docker/image-size/a0a7/svtplayarr/main)](https://hub.docker.com/r/a0a7/svtplayarr) [![Build and Publish Docker Image](https://github.com/a0a7/svtplayarr/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/a0a7/svtplayarr/actions/workflows/docker-publish.yml)
+
 *arr stack integration for SVT Play and NRK (Swedish and Norwegian public broadcaster streaming services)
 
 ## Overview
