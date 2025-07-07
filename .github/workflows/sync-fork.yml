@@ -6,8 +6,9 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout svtplayarr repo
+      - name: Checkout svtplayarr
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
@@ -16,44 +17,31 @@ jobs:
       - name: Set up Git user
         run: |
           git config user.name "a0a7"
-          git config user.email "<your-email>@users.noreply.github.com"
+          git config user.email "aw@a0.ax"
 
-      - name: Fetch publicbroadcastarr default branch
+      - name: Add publicbroadcastarr as remote
         run: |
           git remote add target https://a0a7:${{ secrets.SYNC_TOKEN }}@github.com/a0a7/publicbroadcastarr.git
           git fetch target main
 
-      - name: Check for differences
-        id: diff
+      - name: Rebase onto publicbroadcastarr/main
         run: |
-          git log target/main..HEAD --oneline
-          if [ "$(git rev-list --count target/main..HEAD)" -eq 0 ]; then
-            echo "no_diff=true" >> $GITHUB_OUTPUT
-          else
-            echo "no_diff=false" >> $GITHUB_OUTPUT
-          fi
+          git checkout main
+          git rebase target/main
 
-      - name: Push branch to publicbroadcastarr
-        if: steps.diff.outputs.no_diff == 'false'
+      - name: Push changes to a new branch in publicbroadcastarr
         run: |
           export BRANCH=sync-from-svtplayarr-$(date +%Y%m%d-%H%M%S)
-          git checkout -b $BRANCH
-          git push target $BRANCH
+          git push target HEAD:$BRANCH --force
           echo "branch=$BRANCH" >> $GITHUB_ENV
 
-      - name: Create PR in publicbroadcastarr
-        if: steps.diff.outputs.no_diff == 'false'
-        uses: actions/github-script@v7
+      - name: Create Pull Request on publicbroadcastarr
+        uses: peter-evans/create-pull-request@v6
         with:
-          github-token: ${{ secrets.SYNC_TOKEN }}
-          script: |
-            const branch = process.env.BRANCH;
-            const { data: pr } = await github.pulls.create({
-              owner: 'a0a7',
-              repo: 'publicbroadcastarr',
-              head: branch,
-              base: 'main',
-              title: `Sync from svtplayarr (${branch})`,
-              body: 'Automated PR to sync commits from svtplayarr.'
-            });
-            console.log('PR created:', pr.html_url);
+          token: ${{ secrets.SYNC_TOKEN }}
+          commit-message: "Sync from svtplayarr"
+          title: "Sync from svtplayarr"
+          body: "Automated PR to sync changes from svtplayarr."
+          base: main
+          head: ${{ env.branch }}
+          repository: a0a7/publicbroadcastarr
