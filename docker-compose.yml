@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  svtplayarr:
+    build: .
+    container_name: svtplayarr
+    restart: unless-stopped
+    ports:
+      - "2626:2626"
+    volumes:
+      - ./config:/config
+      - ${MOVIES_PATH:-./downloads/movies}:/downloads/movies
+      - ${TV_PATH:-./downloads/tv}:/downloads/tv
+    environment:
+      - JELLYSEERR_API_KEY=${JELLYSEERR_API_KEY}
+      - JELLYSEERR_URL=${JELLYSEERR_URL:-http://jellyseerr:5055}
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - SONARR_URL=${SONARR_URL:-http://sonarr:8989}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+      - RADARR_URL=${RADARR_URL:-http://radarr:7878}
+      - MOVIES_PATH=/downloads/movies
+      - TV_PATH=/downloads/tv
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    networks:
+      - arr-network
+
+networks:
+  arr-network:
+    external: true
+    # If arr-network doesn't exist, create it with:
+    # docker network create arr-network
+    # Or change to: external: false to auto-create
