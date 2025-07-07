@@ -1,68 +1,43 @@
-name: Sync to publicbroadcastarr
+name: Sync and Create PR
 
 on:
-  # Run on every push to main/master
   push:
-    branches: [ main, master ]
-  
-  # Run daily at 6 AM UTC to catch any missed changes
-  schedule:
-    - cron: '0 6 * * *'
-  
-  # Allow manual trigger
-  workflow_dispatch:
+    branches:
+      - main  # or master, adjust if needed
 
 jobs:
-  sync:
+  sync-and-pr:
     runs-on: ubuntu-latest
+
     steps:
-    - name: Checkout source repository
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
-        token: ${{ secrets.SYNC_TOKEN }}
+      - name: Checkout the source repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Configure Git
-      run: |
-        git config user.name "a0a7"
-        git config user.email "aw@a0.ax"
+      - name: Set up git
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
 
-    - name: Check if sync token is available
-      run: |
-        if [ -z "${{ secrets.SYNC_TOKEN }}" ]; then
-          echo "Missing required secret SYNC_TOKEN."
-          echo "Please set SYNC_TOKEN in repository secrets."
-          exit 1
-        fi
+      - name: Create sync branch
+        run: |
+          git checkout -b sync-branch-${{ github.sha }}
 
-    - name: Add target repository as remote
-      run: |
-        git remote add target https://${{ secrets.SYNC_TOKEN }}@github.com/a0a7/publicbroadcastarr.git
+      - name: Push to target repo
+        env:
+          SYNC_TOKEN: ${{ secrets.SYNC_TOKEN }}
+        run: |
+          git remote add target https://$SYNC_TOKEN@github.com/a0a7/publicbroadcastarr.git
+          git push target sync-branch-${{ github.sha }}:sync-branch-${{ github.sha }}
 
-    - name: Fetch target repository
-      continue-on-error: true
-      run: git fetch target
-
-    - name: Sync main branch
-      run: |
-        # Determine the primary branch (main or master)
-        PRIMARY_BRANCH=""
-        if git ls-remote --heads origin main | grep -q main; then
-          PRIMARY_BRANCH="main"
-        elif git ls-remote --heads origin master | grep -q master; then
-          PRIMARY_BRANCH="master"
-        else
-          echo "No main or master branch found"
-          exit 1
-        fi
-        
-        echo "Syncing branch: $PRIMARY_BRANCH"
-        git checkout $PRIMARY_BRANCH
-        git push target $PRIMARY_BRANCH:$PRIMARY_BRANCH --force
-
-    - name: Verify sync
-      run: |
-        echo "Sync completed successfully!"
-        echo "Source repository: ${{ github.repository }}"
-        echo "Target repository: a0a7/publicbroadcastarr"
-        echo "Latest commit: $(git rev-parse HEAD)"
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.SYNC_TOKEN }}
+          commit-message: Sync from svtplayarr
+          title: 'Sync update from svtplayarr'
+          body: 'Automated PR to sync changes from svtplayarr.'
+          base: main
+          head: sync-branch-${{ github.sha }}
+          repository: a0a7/publicbroadcastarr
