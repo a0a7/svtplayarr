@@ -79,7 +79,7 @@ publish: publish-dockerhub
 build-multiplatform-dockerhub:
 	@read -p "Enter Docker Hub username: " username; \
 	docker buildx build \
-		--platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--platform linux/amd64,linux/arm64 \
 		--tag $$username/svtplayarr:latest \
 		--push .
 
@@ -87,7 +87,7 @@ build-multiplatform-dockerhub:
 build-multiplatform-ghcr:
 	@read -p "Enter GitHub username: " username; \
 	docker buildx build \
-		--platform linux/amd64,linux/arm64,linux/arm/v7 \
+		--platform linux/amd64,linux/arm64 \
 		--tag ghcr.io/$$username/svtplayarr:latest \
 		--push .
 

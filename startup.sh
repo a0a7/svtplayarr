@@ -11,9 +11,18 @@ if [ ! -f /config/config.yml ]; then
     cp /app/config/config.yml /config/config.yml
 fi
 
-# Update svtplay-dl on startup
-echo "Updating svtplay-dl..."
-pip install --upgrade git+https://github.com/spaam/svtplay-dl.git
+# Check if svtplay-dl is installed, install if not
+if ! command -v svtplay-dl &> /dev/null; then
+    echo "svtplay-dl not found, attempting installation..."
+    pip install --no-cache-dir git+https://github.com/spaam/svtplay-dl.git || \
+    pip install --no-cache-dir svtplay-dl || \
+    echo "Warning: Could not install svtplay-dl - downloads may fail"
+else
+    echo "Updating svtplay-dl..."
+    pip install --upgrade --no-cache-dir git+https://github.com/spaam/svtplay-dl.git || \
+    pip install --upgrade --no-cache-dir svtplay-dl || \
+    echo "Warning: Could not update svtplay-dl"
+fi
 
 # Start the application
 echo "Starting application..."

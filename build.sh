@@ -44,9 +44,9 @@ if docker buildx version >/dev/null 2>&1; then
     fi
     
     if [ -n "$TAGS" ]; then
-        # Build and push for multiple platforms
+        # Build and push for multiple platforms (excluding armv7)
         docker buildx build \
-            --platform linux/amd64,linux/arm64,linux/arm/v7 \
+            --platform linux/amd64,linux/arm64 \
             ${TAGS} \
             --push \
             .
