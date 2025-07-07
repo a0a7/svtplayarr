@@ -5,18 +5,26 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     ffmpeg \
+    gcc \
+    g++ \
+    python3-dev \
+    build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Create app directory
 WORKDIR /app
 
+# Upgrade pip first
+RUN pip install --upgrade pip
+
 # Copy requirements first for better caching
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+COPY requirements.txt requirements-fallback.txt ./
+RUN pip install --no-cache-dir -r requirements.txt || \
+    (echo "Main requirements failed, trying fallback..." && \
+     pip install --no-cache-dir -r requirements-fallback.txt)
 
 # Install svtplay-dl from latest release
-RUN pip install --upgrade pip && \
-    pip install git+https://github.com/spaam/svtplay-dl.git
+RUN pip install --no-cache-dir git+https://github.com/spaam/svtplay-dl.git
 
 # Copy application code
 COPY . .

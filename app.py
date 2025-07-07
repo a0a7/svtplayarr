@@ -8,7 +8,13 @@ import time
 import shutil
 from pathlib import Path
 from flask import Flask, request, jsonify
-from simple_justwatch_python_api import JustWatch
+try:
+    from simple_justwatch_python_api import JustWatch
+    JUSTWATCH_AVAILABLE = True
+except ImportError:
+    print("Warning: JustWatch API not available - using direct search only")
+    JustWatch = None
+    JUSTWATCH_AVAILABLE = False
 import schedule
 import yaml
 from arr_integration import ArrIntegration
@@ -26,8 +32,17 @@ app = Flask(__name__)
 class SVTPlayArr:
     def __init__(self):
         self.config = self.load_config()
-        self.justwatch = JustWatch(country='SE')
-        self.justwatch_no = JustWatch(country='NO')
+        
+        # Initialize JustWatch if available
+        if JUSTWATCH_AVAILABLE and JustWatch:
+            self.justwatch = JustWatch(country='SE')
+            self.justwatch_no = JustWatch(country='NO')
+            logger.info("JustWatch API initialized for SE and NO")
+        else:
+            self.justwatch = None
+            self.justwatch_no = None
+            logger.warning("JustWatch API not available - using direct search only")
+            
         self.arr_integration = ArrIntegration()
         self.content_matcher = ContentMatcher()
         
@@ -68,6 +83,11 @@ class SVTPlayArr:
     
     def search_content(self, title, media_type='tv'):
         results = {'svt': [], 'nrk': []}
+        
+        # Only use JustWatch if available
+        if not JUSTWATCH_AVAILABLE or not self.justwatch:
+            logger.info("JustWatch not available, skipping API search")
+            return results
         
         if self.config['providers']['svt_play']:
             try:
