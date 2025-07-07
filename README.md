@@ -3,7 +3,7 @@
 
 ## Overview
 
-svtplayarr is a Docker-based service that integrates SVT Play and NRK streaming services with your *arr stack (Jellyseerr, Sonarr, Radarr). When content is requested through Jellyseerr and is available on SVT Play or NRK, it will be automatically downloaded using svtplay-dl.
+svtplayarr is a service that integrates the SVT Play and NRK (Swedish and Norwegian public broadcaster) streaming services with your Jellyfin *arr stack. When content is requested through Jellyseerr and is available on SVT Play or NRK, it will be automatically downloaded using svtplay-dl.
 
 ## Features
 
@@ -14,6 +14,28 @@ svtplayarr is a Docker-based service that integrates SVT Play and NRK streaming 
 - Daily updates of svtplay-dl from GitHub releases
 - RESTful API for manual operations
 - Configurable download settings
+
+## Installing
+
+### Docker Compose: 
+
+Chose a container registry: 
+
+**Docker Hub:**
+```yaml
+services:
+  svtplayarr:
+    image: username/svtplayarr:latest
+    # ... rest of configuration
+```
+
+**GitHub Container Registry:**
+```yaml
+services:
+  svtplayarr:
+    image: ghcr.io/username/svtplayarr:latest
+    # ... rest of configuration
+```
 
 ## Quick Start
 
@@ -68,7 +90,7 @@ The webhook URL depends on your setup:
 
 ### SVTPlay-dl Options
 
-All svtplay-dl options are configurable via the `config/config.yml` file:
+svtplay-dl options are configurable via the `config/config.yml` file:
 
 ```yaml
 svtplay_dl:
@@ -151,10 +173,6 @@ curl -X POST http://localhost:2626/webhook \
   -d '{"media":{"title":"Example Show","mediaType":"tv"}}'
 ```
 
-## Supported Platforms
-
-- SVT Play (Sweden)
-- NRK TV (Norway)
 
 ## Requirements
 
@@ -179,6 +197,16 @@ curl http://localhost:2626/health
 curl "http://localhost:2626/search?title=Example%20Show&type=tv"
 ```
 
-## Contributing
+## Building
 
-Pull requests welcome. Please ensure Docker builds successfully and all endpoints work as expected.
+### Local Build
+```bash
+# Build locally
+make build
+
+# Test locally
+make test
+
+# Run production
+make run
+```

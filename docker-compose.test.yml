@@ -1,0 +1,32 @@
+version: '3.8'
+
+# Test composition for local development
+# Use this for testing before publishing
+
+services:
+  svtplayarr:
+    build: .
+    container_name: svtplayarr-test
+    restart: unless-stopped
+    ports:
+      - "2626:2626"
+    volumes:
+      - ./config:/config
+      - ./test-downloads/movies:/downloads/movies
+      - ./test-downloads/tv:/downloads/tv
+    environment:
+      - JELLYSEERR_API_KEY=test-key-replace-with-real
+      - JELLYSEERR_URL=http://jellyseerr:5055
+      - SONARR_API_KEY=test-key-replace-with-real
+      - SONARR_URL=http://sonarr:8989
+      - RADARR_API_KEY=test-key-replace-with-real
+      - RADARR_URL=http://radarr:7878
+      - MOVIES_PATH=/downloads/movies
+      - TV_PATH=/downloads/tv
+      - LOG_LEVEL=DEBUG
+    networks:
+      - test-network
+
+networks:
+  test-network:
+    driver: bridge
