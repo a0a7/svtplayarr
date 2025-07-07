@@ -1,4 +1,4 @@
-name: Sync to PublicBroadcastArr
+name: Sync to publicbroadcastarr
 
 on:
   # Run on every push to main/master
@@ -15,30 +15,29 @@ on:
 jobs:
   sync:
     runs-on: ubuntu-latest
-    if: github.repository_owner != '' # Only run if we have access
     steps:
     - name: Checkout source repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.SYNC_TOKEN }}
 
     - name: Configure Git
       run: |
         git config user.name "a0a7"
         git config user.email "aw@a0.ax"
 
-    - name: Check if secrets are available
+    - name: Check if sync token is available
       run: |
-        if [ -z "${{ secrets.SYNC_TOKEN }}" ] || [ -z "${{ secrets.TARGET_REPO }}" ]; then
-          echo "Missing required secrets. Please set SYNC_TOKEN and TARGET_REPO."
-          echo "See SYNC_SETUP.md for instructions."
+        if [ -z "${{ secrets.SYNC_TOKEN }}" ]; then
+          echo "Missing required secret SYNC_TOKEN."
+          echo "Please set SYNC_TOKEN in repository secrets."
           exit 1
         fi
 
     - name: Add target repository as remote
       run: |
-        git remote add target https://${{ secrets.SYNC_TOKEN }}@github.com/${{ secrets.TARGET_REPO }}.git
+        git remote add target https://${{ secrets.SYNC_TOKEN }}@github.com/a0a7/publicbroadcastarr.git
 
     - name: Fetch target repository
       continue-on-error: true
@@ -59,12 +58,12 @@ jobs:
         
         echo "Syncing branch: $PRIMARY_BRANCH"
         git checkout $PRIMARY_BRANCH
-        git push target $PRIMARY_BRANCH:$PRIMARY_BRANCH --force-with-lease
+        git push target $PRIMARY_BRANCH:$PRIMARY_BRANCH
 
     - name: Sync all tags
       run: |
         if git tag -l | grep -q .; then
-          git push target --tags --force
+          git push target --tags
           echo "Tags synced successfully"
         else
           echo "No tags to sync"
@@ -74,5 +73,5 @@ jobs:
       run: |
         echo "Sync completed successfully!"
         echo "Source repository: ${{ github.repository }}"
-        echo "Target repository: ${{ secrets.TARGET_REPO }}"
+        echo "Target repository: a0a7/publicbroadcastarr"
         echo "Latest commit: $(git rev-parse HEAD)"
