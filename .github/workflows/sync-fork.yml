@@ -1,0 +1,78 @@
+name: Sync to PublicBroadcastArr
+
+on:
+  # Run on every push to main/master
+  push:
+    branches: [ main, master ]
+  
+  # Run daily at 6 AM UTC to catch any missed changes
+  schedule:
+    - cron: '0 6 * * *'
+  
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    if: github.repository_owner != '' # Only run if we have access
+    steps:
+    - name: Checkout source repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Configure Git
+      run: |
+        git config user.name "a0a7"
+        git config user.email "aw@a0.ax"
+
+    - name: Check if secrets are available
+      run: |
+        if [ -z "${{ secrets.SYNC_TOKEN }}" ] || [ -z "${{ secrets.TARGET_REPO }}" ]; then
+          echo "Missing required secrets. Please set SYNC_TOKEN and TARGET_REPO."
+          echo "See SYNC_SETUP.md for instructions."
+          exit 1
+        fi
+
+    - name: Add target repository as remote
+      run: |
+        git remote add target https://${{ secrets.SYNC_TOKEN }}@github.com/${{ secrets.TARGET_REPO }}.git
+
+    - name: Fetch target repository
+      continue-on-error: true
+      run: git fetch target
+
+    - name: Sync main branch
+      run: |
+        # Determine the primary branch (main or master)
+        PRIMARY_BRANCH=""
+        if git ls-remote --heads origin main | grep -q main; then
+          PRIMARY_BRANCH="main"
+        elif git ls-remote --heads origin master | grep -q master; then
+          PRIMARY_BRANCH="master"
+        else
+          echo "No main or master branch found"
+          exit 1
+        fi
+        
+        echo "Syncing branch: $PRIMARY_BRANCH"
+        git checkout $PRIMARY_BRANCH
+        git push target $PRIMARY_BRANCH:$PRIMARY_BRANCH --force-with-lease
+
+    - name: Sync all tags
+      run: |
+        if git tag -l | grep -q .; then
+          git push target --tags --force
+          echo "Tags synced successfully"
+        else
+          echo "No tags to sync"
+        fi
+
+    - name: Verify sync
+      run: |
+        echo "Sync completed successfully!"
+        echo "Source repository: ${{ github.repository }}"
+        echo "Target repository: ${{ secrets.TARGET_REPO }}"
+        echo "Latest commit: $(git rev-parse HEAD)"
