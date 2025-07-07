@@ -58,16 +58,7 @@ jobs:
         
         echo "Syncing branch: $PRIMARY_BRANCH"
         git checkout $PRIMARY_BRANCH
-        git push target $PRIMARY_BRANCH:$PRIMARY_BRANCH
-
-    - name: Sync all tags
-      run: |
-        if git tag -l | grep -q .; then
-          git push target --tags
-          echo "Tags synced successfully"
-        else
-          echo "No tags to sync"
-        fi
+        git push target $PRIMARY_BRANCH:$PRIMARY_BRANCH --force
 
     - name: Verify sync
       run: |
