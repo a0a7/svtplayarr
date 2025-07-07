@@ -1,0 +1,29 @@
+svtplay_dl:
+  # Video quality (best, worst, or specific resolution like 720p)
+  quality: "best"
+  
+  # Download subtitles
+  subtitle: true
+  
+  # Force subtitle download even if not available
+  force_subtitle: false
+  
+  # Output path template
+  output: "/downloads/{type}/{title}"
+  
+  # Remux to mkv
+  remux: false
+  
+  # Merge subtitles into video file
+  merge_subtitle: false
+  
+  # Download thumbnail
+  thumbnail: false
+
+providers:
+  svt_play: true
+  nrk: true
+
+paths:
+  movies: "/downloads/movies"
+  tv: "/downloads/tv"
