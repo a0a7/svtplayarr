@@ -15,20 +15,6 @@ SVTPlayArr is a service that integrates SVT Play and NRK (the respective public 
 - RESTful API for manual operations
 - Configurable download settingsrr stack integration for SVT Play and NRK (Swedish and Norwegian public broadcaster streaming services)
 
-## Overview
-
-svtplayarr is a service that integrates the SVT Play and NRK (Swedish and Norwegian public broadcaster) streaming services with your Jellyfin *arr stack. When content is requested through Jellyseerr and is available on SVT Play or NRK, it will be automatically downloaded using svtplay-dl.
-
-## Features
-
-- Automatic content detection on SVT Play and NRK
-- Integration with Jellyseerr webhooks
-- Full svtplay-dl configuration support
-- Automatic Sonarr/Radarr notification after download
-- Daily updates of svtplay-dl from GitHub releases
-- RESTful API for manual operations
-- Configurable download settings
-
 ## Installing
 
 ### Docker Compose: 
